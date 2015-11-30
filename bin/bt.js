@@ -30,25 +30,35 @@ function run(url, options) {
     .then(function(result) {
       const namer = fileNamer();
 
-      let jsonName = options.output || namer.getNameFromUrl(url, 'json'),
-        harName = options.har || namer.getNameFromUrl(url, 'har');
-
+      let jsonName = options.output || namer.getNameFromUrl(url, 'json');
       let browsertimeData = JSON.stringify(result.browsertimeData, null, 2);
-      let har = JSON.stringify(result.har, null, 2);
 
-      let ffHar = result.browsertimeData[0].ffHar;
-      if (ffHar) {
-        fs.writeFileSync('ff.har', JSON.stringify(ffHar, null, 2), 'utf8');
+      const fileWriteOperations = [
+        fs.writeFileAsync(jsonName, browsertimeData).tap(() => {
+          log.info('Wrote browsertime data to %s', jsonName);
+        })
+      ];
+
+      if (result.har) {
+        let har = JSON.stringify(result.har, null, 2);
+        let harName = options.har || namer.getNameFromUrl(url, 'har');
+
+        fileWriteOperations.push(fs.writeFileAsync(harName, har).tap(() => {
+            log.info('Wrote har data to %s', harName);
+          })
+        );
       }
 
-      return Promise.all([
-        fs.writeFileAsync(jsonName, browsertimeData).tap(() => {
-            log.info('Wrote browsertime data to %s', jsonName);
-          }),
-        fs.writeFileAsync(harName, har).tap(() => {
-          log.info('Wrote har data to %s', harName);
-        })
-      ]);
+      if (result.ffHar) {
+        let har = JSON.stringify(result.ffHar, null, 2);
+
+        fileWriteOperations.push(fs.writeFileAsync('ff.har', har).tap(() => {
+            log.info('Wrote Firefox har data to %s', 'ff.har');
+          })
+        );
+      }
+
+      return Promise.all(fileWriteOperations);
     })
     .catch(function(e) {
       log.error('Error running browsertime', e);
