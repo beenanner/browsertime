@@ -32,6 +32,20 @@ describe('har_builder', function() {
       expect(har).to.have.deep.property('log.creator.name', 'Browsertime');
       expect(har).to.have.deep.property('log.creator.comment', 'foo');
     });
+
+    it('should not add comment to creator unless specified', function() {
+      builder.addCreator(har);
+
+      expect(har).to.have.deep.property('log.creator.name', 'Browsertime');
+      expect(har).to.not.have.deep.property('log.creator.comment');
+    });
+
+    it('should not add empty comment to creator', function() {
+      builder.addCreator(har, '');
+
+      expect(har).to.have.deep.property('log.creator.name', 'Browsertime');
+      expect(har).to.not.have.deep.property('log.creator.comment');
+    });
   });
 
   describe('#mergeHars', function() {
