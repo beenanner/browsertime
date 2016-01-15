@@ -72,7 +72,7 @@ describe('har_builder', function() {
           'pageref': 'page_0-1'
         }]);
       expect(combinedHar).to.have.deep.property('log.version', '1.2');
-      expect(combinedHar).to.not.have.deep.property('log.creator.comment');
+      expect(combinedHar).to.have.deep.property('log.creator.name', 'Browsertime');
     });
   });
 });
