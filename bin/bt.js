@@ -14,8 +14,13 @@ let Engine = require('../').Engine,
 Promise.promisifyAll(fs);
 
 function run(url, options) {
-  options.scripts = browserScripts.defaultScripts;
 
+  // TODO we shouldn't ovewrite input options, lets rename it
+  if (options.scripts) {
+    options.scripts = browserScripts.parseBrowserScripts(options.scripts, false);
+  } else {
+    options.scripts = browserScripts.defaultScripts;
+  }
   let engine = new Engine(options);
 
   log.info('Running %s for url: %s', options.browser, url);
@@ -32,14 +37,14 @@ function run(url, options) {
       let saveOperations = [];
 
       if (result.browsertimeData) {
-        let browsertimeData = JSON.stringify(result.browsertimeData, null, 2);
+        let browsertimeData = JSON.stringify(result.browsertimeData);
         let jsonName = options.output || namer.getNameFromUrl(url, 'json');
         saveOperations.push(fs.writeFileAsync(jsonName, browsertimeData).tap(() => {
           log.info('Wrote browsertime data to %s', jsonName);
         }));
       }
       if (result.har) {
-        let har = JSON.stringify(result.har, null, 2);
+        let har = JSON.stringify(result.har);
         let harName = options.har || namer.getNameFromUrl(url, 'har');
         saveOperations.push(fs.writeFileAsync(harName, har).tap(() => {
           log.info('Wrote har data to %s', harName);
